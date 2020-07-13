@@ -6,7 +6,10 @@ const mongoose = require("mongoose");
 app.use(middlewares);
 
 mongoose
-  .connect(process.env.db_connect)
+  .connect(process.env.db_connect, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then((res) => {
     console.log("connected");
     app.listen(process.env.PORT || 8080);
