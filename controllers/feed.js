@@ -2,20 +2,13 @@ const { validationResult } = require("express-validator");
 const PostSchema = require("../models/Post");
 
 exports.getpPosts = (req, res, next) => {
-  res.status(200).json({
-    posts: [
-      {
-        _id: "1",
-        title: "First Post",
-        contents: "This is First Post",
-        imageUrl: "images/nodejslogo.png",
-        creator: {
-          name: "Anirban",
-        },
-        createdAt: new Date(),
-      },
-    ],
-  });
+  PostSchema.find()
+    .then((posts) => {
+      return res.status(200).json({ message: "Get all posts", posts });
+    })
+    .catch((error) => {
+      res.status(404).json({ message: "Could not fetch posts" });
+    });
 };
 exports.createPosts = (req, res, next) => {
   const { content, title } = req.body;
@@ -43,5 +36,12 @@ exports.createPosts = (req, res, next) => {
     .catch((err) => console.error(err));
 };
 exports.getPost = (req, res, next) => {
-  console.log("came Here");
+  const { postId } = req.params;
+  PostSchema.findById(postId)
+    .then((post) => {
+      return res.status(200).json({ message: "Fetched single post", post });
+    })
+    .catch((error) => {
+      return res.status(422).json({ message: "Could not find single Post" });
+    });
 };
