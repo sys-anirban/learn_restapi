@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const { validationResult } = require("express-validator");
 const PostSchema = require("../models/Post");
 
@@ -13,16 +15,22 @@ exports.getpPosts = (req, res, next) => {
 exports.createPosts = (req, res, next) => {
   const { content, title } = req.body;
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
     return res.status(422).json({
       message: "Validation Failed Backend",
       errors: errors.array(),
     });
   }
+
+  if (!req.file) {
+    return res.status(422).json({ message: "No File Selected" });
+  }
+  const imageUrl = req.file.path.replace(/\\/g, "/");
   const post = new PostSchema({
     title: title,
     content: content,
-    imageUrl: "images/nodejslogo.png",
+    imageUrl: imageUrl,
     creator: { name: "Anirban" },
   });
   post
@@ -35,6 +43,7 @@ exports.createPosts = (req, res, next) => {
     })
     .catch((err) => console.error(err));
 };
+
 exports.getPost = (req, res, next) => {
   const { postId } = req.params;
   PostSchema.findById(postId)
@@ -44,4 +53,53 @@ exports.getPost = (req, res, next) => {
     .catch((error) => {
       return res.status(422).json({ message: "Could not find single Post" });
     });
+};
+
+exports.updatePost = (req, res, next) => {
+  const postId = req.params.postId;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      message: "Validation Failed Backend",
+      errors: errors.array(),
+    });
+  }
+
+  const { title, content } = req.body;
+  let imageUrl = req.body.image;
+  if (req.file) {
+    imageUrl = req.file.path.replace(/\\/g, "/");
+  }
+  if (!imageUrl) {
+    return res.status(422).json({ message: "No file picked" });
+  }
+
+  PostSchema.findById(postId)
+    .then((post) => {
+      if (!post) {
+        return res
+          .status(404)
+          .json({ message: "Could not fine any post to edit" });
+      }
+      if (post.imageUrl !== imageUrl) {
+        clearImage(post.imageUrl);
+      }
+      post.title = title;
+      post.content = content;
+      post.imageUrl = imageUrl;
+      return post.save();
+    })
+    .then((result) => {
+      return res.status(200).json({ message: "Post updated", post: result });
+    })
+    .catch((err) => {
+      return res
+        .status(500)
+        .json({ message: "Internal server error", err: err });
+    });
+};
+
+const clearImage = (filePath) => {
+  filePath = path.join(__dirname, "..", filePath);
+  fs.unlink(filePath, (err) => console.log(err));
 };
