@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const feedRoutes = require("./routes/feed");
+const authRoutes = require("./routes/auth");
 const path = require("path");
 const multer = require("multer");
 const cors = require("cors");
@@ -43,4 +44,5 @@ app.use((req, res, next) => {
   next();
 });
 app.use("/feed", feedRoutes);
+app.use("/auth", authRoutes);
 module.exports = app;
