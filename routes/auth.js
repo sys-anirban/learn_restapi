@@ -10,11 +10,11 @@ router.put(
     body("email")
       .isEmail()
       .withMessage("Please enter a Valid email")
-      .custom((value, { req }) => {
-        return User.findOne({ email: value }).then((userDoc) => {
-          return Promise.reject("Email already exist");
-        });
-      })
+      // .custom((value, { req }) => {
+      //   return User.findOne({ email: value }).then((userDoc) => {
+      //     return Promise.reject("Email already exist");
+      //   });
+      // })
       .normalizeEmail(),
     body("password")
       .trim()
@@ -24,5 +24,7 @@ router.put(
   ],
   authController.signup
 );
+
+router.post("/login", authController.login);
 
 module.exports = router;
